@@ -106,5 +106,28 @@ stars = [
                     -9.51592254519715870e-05 * DAYS_PER_YEAR],
                      5.15138902046611451e-05 * SOLAR_MASS) ]
 
-
+#main(10, stars)
 @benchmark main(1000_000, stars)
+
+#=
+-0.169075164
+-0.169086185
+-0.169158643
+-0.169080755
+-0.169224230
+-0.169301561
+-0.169785648
+-0.169721790
+
+BenchmarkTools.Trial:
+  memory estimate:  8.94 GiB
+  allocs estimate:  220000860
+  --------------
+  minimum time:     15.682 s (7.29% GC)
+  median time:      15.682 s (7.29% GC)
+  mean time:        15.682 s (7.29% GC)
+  maximum time:     15.682 s (7.29% GC)
+  --------------
+  samples:          1
+  evals/sample:     1
+=#
