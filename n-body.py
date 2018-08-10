@@ -62,9 +62,6 @@ BODIES = {
 SYSTEM = list(BODIES.values())
 PAIRS = combinations(SYSTEM)
 
-type(PAIRS)
-
-
 def advance(dt, n, bodies=SYSTEM, pairs=PAIRS):
 
     for i in range(n):
@@ -124,4 +121,4 @@ if __name__ == '__main__':
     main(int(sys.argv[1]))
 
 
-%timeit main(100000)
+%timeit main(1000000)
