@@ -13,8 +13,8 @@ const DAYS_PER_YEAR = 365.24
 
 function mk_pairs(bodies::Vector{Star})
     local ret = Vector{Tuple{Star, Star}}[]
-    for (i, x) in enumerate(bodies)
-        for y in bodies[i+1:end]
+    @inbounds for (i, x) in enumerate(bodies)
+        @inbounds for y in bodies[i+1:end]
             ret = vcat(ret, (x, y))
         end
     end
@@ -22,7 +22,7 @@ function mk_pairs(bodies::Vector{Star})
 end
 
 function core_advance_v!(dt::Float64, pairs::Vector{Tuple{Star, Star}})
-    for (s1, s2) in pairs
+    @inbounds for (s1, s2) in pairs
         local dx = s1.r - s2.r
         local mag = dt * ((dx[1]^2 + dx[2]^2 + dx[3]^2) ^ (-1.5))
         local b1m = s1.m * mag
@@ -33,7 +33,7 @@ function core_advance_v!(dt::Float64, pairs::Vector{Tuple{Star, Star}})
 end
 
 function core_advance_r!(dt::Float64, bodies::Vector{Star})
-    for s in bodies
+    @inbounds for s in bodies
         s.r += dt * s.v
     end
 end
@@ -41,7 +41,7 @@ end
 function advance!(dt::Float64, n::Int64,
                   bodies::Vector{Star},
                   pairs::Vector{Tuple{Star, Star}})
-    for i in 1:n
+    @inbounds for i in 1:n
         core_advance_v!(dt, pairs)
         core_advance_r!(dt, bodies)
     end
@@ -49,7 +49,7 @@ end
 
 function core_u_energy(pairs::Vector{Tuple{Star, Star}},
                      ene::Float64=0.0)
-    for (s1, s2) in pairs
+    @inbounds for (s1, s2) in pairs
         local dx = s1.r - s2.r
         ene -= (s1.m * s2.m) / ((dx[1]^2 + dx[2]^2 + dx[3]^2) ^ 0.5)
     end
@@ -58,7 +58,7 @@ end
 
 function core_k_energy(bodies::Vector{Star},
                        ene::Float64=0.0)
-    for s in bodies
+    @inbounds for s in bodies
         ene += s.m * (s.v[1]^2 + s.v[2]^2 + s.v[3]^2) / 2.
     end
     return ene
@@ -75,7 +75,7 @@ end
 
 function core_offset_momentum!(bodies::Vector{Star},
                               pr::Vector{Float64}=[0.0, 0.0, 0.0])
-    for s in bodies
+    @inbounds for s in bodies
         pr -= s.v * s.m
     end
     return pr
@@ -131,9 +131,10 @@ function mk_stars()
                          1.62824170038242295e-03 * DAYS_PER_YEAR,
                         -9.51592254519715870e-05 * DAYS_PER_YEAR],
                          5.15138902046611451e-05 * SOLAR_MASS) ]
+    return stars
 end
-#main(10, stars)
 stars = mk_stars()
+#main(10, stars)
 main(10, stars)
 stars = mk_stars()
 @benchmark main(1000_000, stars)
@@ -167,3 +168,32 @@ BenchmarkTools.Trial:
   samples:          2
   evals/sample:     1
 =#
+
+function test(n)
+    circle_in = 0.0
+    for i in 1:n
+        l = (rand()^2 + rand()^2)^0.5
+        if l <= 1
+            circle_in = circle_in + 1
+        end
+    end
+    println((4 * circle_in) / n)
+end
+
+@benchmark test(100_000_000)
+
+function core_test2(n::Int64, circle_in::Float64)
+    for i in 1:n
+        local l::Float64 = rand()^2 + rand()^2
+        circle_in += ifelse(l <= 1., 1., 0.)
+    end
+    return circle_in
+end
+
+function test2(n::Int64)
+    local circle_in::Float64 = 0.0
+    circle_in = core_test2(n, circle_in)
+    println((4.0 * circle_in) / n)
+end
+
+@benchmark test2(100_000_000)
