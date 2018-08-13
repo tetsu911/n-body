@@ -134,10 +134,11 @@ function mk_stars()
     return stars
 end
 stars = mk_stars()
-#main(10, stars)
 main(10, stars)
 stars = mk_stars()
-@benchmark main(1000_000, stars)
+@benchmark main(1_000_000, stars)
+
+main(1, stars)
 
 #=
 -0.169289903
@@ -168,32 +169,3 @@ BenchmarkTools.Trial:
   samples:          2
   evals/sample:     1
 =#
-
-function test(n)
-    circle_in = 0.0
-    for i in 1:n
-        l = (rand()^2 + rand()^2)^0.5
-        if l <= 1
-            circle_in = circle_in + 1
-        end
-    end
-    println((4 * circle_in) / n)
-end
-
-@benchmark test(100_000_000)
-
-function core_test2(n::Int64, circle_in::Float64)
-    for i in 1:n
-        local l::Float64 = rand()^2 + rand()^2
-        circle_in += ifelse(l <= 1., 1., 0.)
-    end
-    return circle_in
-end
-
-function test2(n::Int64)
-    local circle_in::Float64 = 0.0
-    circle_in = core_test2(n, circle_in)
-    println((4.0 * circle_in) / n)
-end
-
-@benchmark test2(100_000_000)
